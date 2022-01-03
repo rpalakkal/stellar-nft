@@ -29,7 +29,7 @@ const Header = () => {
 
   useEffect(async () => {
     const balance = await getAccountBalance(publicKey, stellarNetworkInfo);
-    setAccountBalance(balance);
+    setAccountBalance(balance ? balance : "0.000");
   }, [publicKey, isTransacting, stellarNetworkName]);
 
   const publicKeyShortenedString =

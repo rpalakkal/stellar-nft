@@ -12,19 +12,30 @@ const Transaction = (props) => {
     const publicKey = useRecoilValue(publicKeyState);
     const setStep = useSetRecoilState(currentStepState);
     const setIsTransacting = useSetRecoilState(isTransactingState);
+    const [accountBalance, setAccountBalance] = useState(0);
 
     useEffect(async () => {
-        await onClick();
+        if(publicKey){
+            const balance = await getAccountBalance(publicKey, stellarNetwork);
+            if(balance) setAccountBalance(balance);
+        }
+        if(errorText!=""){
+            if(balance < 2){
+                setErrorText("Insufficient funds: account must have 2 XLM");
+                return;
+            }
+            await onClick();
+        }  
     }, [publicKey]);
 
     const onClick = async () => {
         if(!publicKey){
-            setErrorText("Please connect account then try again!");
+            setErrorText("Please connect account!");
             return;
         }
         const balance = await getAccountBalance(publicKey, stellarNetwork);
-        if(balance < 2){
-            setErrorText("Error: balance must be at least 2 XLM.");
+        if(!balance || balance < 2){
+            setErrorText("Insufficient funds: account must have 2 XLM");
             return;
         }
         setIsTransacting(true);
@@ -48,6 +59,18 @@ const Transaction = (props) => {
 
     return(
         <div className="flex flex-col items-center justify-center">
+            <div className="flex space-x-5 py-3">
+                <div className="flex flex-col">
+                    <div className="flex justify-end">Current Balance: </div>
+                    <div className="flex justify-end">NFT Minting Cost: </div>
+                    <div className="flex justify-end">Balance After: </div>
+                </div>
+                <div className="flex flex-col">
+                    <div className="flex justify-end">{accountBalance ? accountBalance.toString().match(/^-?\d+(?:\.\d{0,3})?/)[0] : "0.000"} XLM</div>
+                    <div className="flex justify-end">2.000 XLM</div>
+                    <div className="flex justify-end">{accountBalance ? (accountBalance-2).toString().match(/^-?\d+(?:\.\d{0,3})?/)[0] : "-2.000"} XLM</div>
+                </div>
+            </div>
             <button className="p-2 rounded border border-gray-500 bg-gray-300 hover:bg-gray-400" onClick={onClick}>
                 Purchase
             </button>
